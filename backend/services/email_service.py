@@ -1,13 +1,21 @@
 import os
 import io
-import aiosmtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
-from openpyxl import Workbook
-from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 import logging
+
+try:
+    import aiosmtplib
+except ImportError:
+    aiosmtplib = None
+
+try:
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+except ImportError:
+    Workbook = None
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +27,8 @@ NOTIFICATION_EMAIL = os.environ.get('NOTIFICATION_EMAIL')
 
 
 def create_inquiry_excel(inquiry_data: dict) -> bytes:
+    if Workbook is None:
+        raise ImportError("openpyxl is not installed")
     wb = Workbook()
     ws = wb.active
     ws.title = "Inquiry Details"
@@ -84,6 +94,14 @@ def create_inquiry_excel(inquiry_data: dict) -> bytes:
 
 
 async def send_inquiry_notification(inquiry_data: dict):
+    if aiosmtplib is None:
+        logger.warning("aiosmtplib not installed, skipping email notification")
+        return False
+
+    if not SMTP_USER or not SMTP_PASSWORD or not NOTIFICATION_EMAIL:
+        logger.warning("SMTP credentials not configured, skipping email notification")
+        return False
+
     try:
         message = MIMEMultipart('mixed')
         message['Subject'] = f'New Inquiry: {inquiry_data["propertyInterest"] or "General"}'

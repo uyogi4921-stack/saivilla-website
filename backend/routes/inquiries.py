@@ -1,22 +1,24 @@
 from fastapi import APIRouter, HTTPException, status
 from models.inquiry import InquiryCreate, Inquiry, InquiryResponse
 from typing import List
+import os
 import logging
-from services.email_service import send_inquiry_notification
+from motor.motor_asyncio import AsyncIOMotorClient
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/inquiries", tags=["inquiries"])
 
+# Lazy import to avoid circular dependency
+_db = None
 
 def get_db():
-    from motor.motor_asyncio import AsyncIOMotorClient
-    import os
-
-    mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
-    client = AsyncIOMotorClient(mongo_url)
-    db = client[os.environ.get('DB_NAME', 'test_database')]
-    return db
+    global _db
+    if _db is None:
+        mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+        client = AsyncIOMotorClient(mongo_url)
+        _db = client[os.environ.get('DB_NAME', 'test_database')]
+    return _db
 
 
 @router.post("/", response_model=InquiryResponse, status_code=status.HTTP_201_CREATED)
@@ -32,6 +34,7 @@ async def create_inquiry(inquiry_data: InquiryCreate):
             logger.info(f"New inquiry created: {inquiry.id} from {inquiry.email}")
 
             try:
+                from services.email_service import send_inquiry_notification
                 await send_inquiry_notification(inquiry.dict())
             except Exception as email_error:
                 logger.error(f"Email notification failed: {str(email_error)}")
