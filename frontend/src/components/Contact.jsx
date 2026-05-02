@@ -29,7 +29,7 @@ const Contact = () => {
     setSubmitStatus(null);
 
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || '';
+      const apiUrl = process.env.REACT_APP_API_URL || '/_/backend';
       await axios.post(`${apiUrl}/api/inquiries/`, formData);
       setSubmitStatus('success');
       setFormData({ name: '', email: '', phone: '', propertyInterest: '', message: '' });
