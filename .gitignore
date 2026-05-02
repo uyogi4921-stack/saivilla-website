@@ -1,0 +1,28 @@
+# Dependencies
+frontend/node_modules/
+frontend/build/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/venv/
+backend/.venv/
+
+# Environment
+backend/.env
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testing
+frontend/coverage/
+
+# Misc
+.claude/
