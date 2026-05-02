@@ -13,7 +13,8 @@ from datetime import datetime, timezone
 from routes.inquiries import router as inquiries_router
 
 ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
+# override=False ensures Emergent platform env vars take priority over .env file
+load_dotenv(ROOT_DIR / '.env', override=False)
 
 mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 client = AsyncIOMotorClient(mongo_url)
