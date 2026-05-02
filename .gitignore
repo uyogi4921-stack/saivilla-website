@@ -6,9 +6,9 @@ backend/**/__pycache__/
 backend/venv/
 backend/.venv/
 
-# Environment
-backend/.env
+# Environment (backend/.env kept for Emergent deployment)
 .env
+!backend/.env
 
 # IDE
 .vscode/
