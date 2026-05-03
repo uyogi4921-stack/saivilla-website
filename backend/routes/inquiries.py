@@ -27,15 +27,18 @@ async def create_inquiry(inquiry_data: InquiryCreate):
         db = get_db()
         inquiries_collection = db.inquiries
 
-        inquiry = Inquiry(**inquiry_data.dict())
-        result = await inquiries_collection.insert_one(inquiry.dict())
+        inquiry = Inquiry(**inquiry_data.model_dump())
+        inquiry_doc = inquiry.model_dump()
+        inquiry_doc['createdAt'] = inquiry_doc['createdAt'].isoformat()
+        inquiry_doc['updatedAt'] = inquiry_doc['updatedAt'].isoformat()
+        result = await inquiries_collection.insert_one(inquiry_doc)
 
         if result.inserted_id:
             logger.info(f"New inquiry created: {inquiry.id} from {inquiry.email}")
 
             try:
                 from services.email_service import send_inquiry_notification
-                await send_inquiry_notification(inquiry.dict())
+                await send_inquiry_notification(inquiry.model_dump())
             except Exception as email_error:
                 logger.error(f"Email notification failed: {str(email_error)}")
 

@@ -1,6 +1,6 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 
 
@@ -13,6 +13,8 @@ class InquiryCreate(BaseModel):
 
 
 class Inquiry(BaseModel):
+    model_config = ConfigDict(json_encoders={datetime: lambda v: v.isoformat()})
+
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
     email: str
@@ -20,13 +22,8 @@ class Inquiry(BaseModel):
     propertyInterest: Optional[str] = None
     message: str
     status: str = Field(default="new")
-    createdAt: datetime = Field(default_factory=datetime.utcnow)
-    updatedAt: datetime = Field(default_factory=datetime.utcnow)
-
-    class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+    createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updatedAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class InquiryResponse(BaseModel):
