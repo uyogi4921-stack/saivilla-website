@@ -18,6 +18,7 @@ const Contact = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
+  const [isWakingUp, setIsWakingUp] = useState(false);
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -26,17 +27,23 @@ const Contact = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setIsWakingUp(false);
     setSubmitStatus(null);
+
+    // Show "waking up" message after 5 seconds if still waiting
+    const wakeTimer = setTimeout(() => setIsWakingUp(true), 5000);
 
     try {
       const apiUrl = process.env.REACT_APP_API_URL || 'https://saivilla-backend.onrender.com';
-      await axios.post(`${apiUrl}/api/inquiries/`, formData);
+      await axios.post(`${apiUrl}/api/inquiries/`, formData, { timeout: 90000 });
       setSubmitStatus('success');
       setFormData({ name: '', email: '', phone: '', propertyInterest: '', message: '' });
     } catch (error) {
       setSubmitStatus('error');
     } finally {
+      clearTimeout(wakeTimer);
       setIsSubmitting(false);
+      setIsWakingUp(false);
     }
   };
 
@@ -230,7 +237,7 @@ const Contact = () => {
                       {isSubmitting ? (
                         <span className="flex items-center gap-2">
                           <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          Sending...
+                          {isWakingUp ? 'Please wait, connecting...' : 'Sending...'}
                         </span>
                       ) : (
                         <span className="flex items-center gap-2">
