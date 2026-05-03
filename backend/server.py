@@ -25,10 +25,12 @@ app = FastAPI()
 
 @app.get("/health")
 async def health_check():
+    mongo_url_val = os.environ.get('MONGO_URL', 'NOT SET')
     return {
         "status": "healthy",
         "service": "SAIVILLA DREAMHOUSE API",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "db_configured": "atlas" if "mongodb+srv" in mongo_url_val else "localhost_or_missing"
     }
 
 
