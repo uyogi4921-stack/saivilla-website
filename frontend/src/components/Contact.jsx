@@ -57,7 +57,7 @@ const Contact = () => {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-5 gap-12">
+        <div className="grid lg:grid-cols-5 gap-8 lg:gap-12">
           {/* Contact info */}
           <div className="lg:col-span-2 space-y-6">
             <Card className="border-[#d4af37]/20">

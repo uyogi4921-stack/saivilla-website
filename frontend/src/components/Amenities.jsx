@@ -25,7 +25,7 @@ const Amenities = () => {
         </div>
 
         {/* Featured amenities with images */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-12">
           {amenitiesData.filter(a => a.image).map((amenity) => {
             const Icon = iconComponents[amenity.icon];
             return (
@@ -49,7 +49,7 @@ const Amenities = () => {
         </div>
 
         {/* Other amenities grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           {amenitiesData.filter(a => !a.image).map((amenity) => {
             const Icon = iconComponents[amenity.icon];
             return (

@@ -13,9 +13,9 @@ const ProjectModal = ({ project, isOpen, onClose }) => {
   const prevImage = () => setCurrentImageIndex((prev) => (prev - 1 + project.gallery.length) % project.gallery.length);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/80" onClick={onClose}>
       <div
-        className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-t-2xl sm:rounded-2xl max-w-4xl w-full max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Image gallery */}
