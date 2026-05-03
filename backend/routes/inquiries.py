@@ -54,11 +54,10 @@ async def create_inquiry(inquiry_data: InquiryCreate):
             )
 
     except Exception as e:
-        import traceback
-        logger.error(f"Error creating inquiry: {str(e)}\n{traceback.format_exc()}")
+        logger.error(f"Error creating inquiry: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error: {str(e)}"
+            detail="An error occurred while processing your inquiry. Please try again."
         )
 
 
