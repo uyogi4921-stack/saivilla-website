@@ -1,102 +1,87 @@
-import React from 'react';
-import { ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { heroData, aboutData, projectsData } from '@/data/siteData';
+import React, { useState, useEffect } from 'react';
+import { Plus } from 'lucide-react';
+import { aboutData, projectsData } from '@/data/siteData';
 
 const Hero = () => {
   const heroImages = projectsData.slice(0, 3).map(p => p.image);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  // Auto-advance slideshow
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide(prev => (prev + 1) % heroImages.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [heroImages.length]);
+
+  const stats = aboutData.stats;
 
   return (
-    <section id="home" className="relative" style={{ height: 'calc(100vh - 80px)', minHeight: '500px' }}>
-      {/* Background slideshow */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="slideshow-container">
-          {heroImages.map((img, index) => (
-            <div key={index} className="slide">
-              <img
-                src={img}
-                alt={`Saivilla Project ${index + 1}`}
-                className="w-full h-full object-cover"
-              />
+    <section id="home" className="relative w-full" style={{ height: 'calc(100vh - 106px)', minHeight: '520px' }}>
+
+      {/* Full-bleed slideshow images */}
+      {heroImages.map((img, index) => (
+        <div
+          key={index}
+          className="absolute inset-0 transition-opacity duration-1000"
+          style={{ opacity: currentSlide === index ? 1 : 0 }}
+        >
+          <img
+            src={img}
+            alt={`SAIVILLA Project ${index + 1}`}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      ))}
+
+      {/* Very subtle gradient — only bottom corners for readability */}
+      <div className="absolute inset-0 bg-gradient-to-br from-black/10 via-transparent to-black/50" />
+
+      {/* Stats grid — bottom right, Godrej style */}
+      <div className="absolute bottom-14 right-0 md:right-8 z-10">
+        <div className="grid grid-cols-2 divide-x divide-white/30">
+          {stats.map((stat, index) => (
+            <div
+              key={index}
+              className={`px-5 md:px-8 py-3 md:py-5 text-right ${index < 2 ? 'border-b border-white/30' : ''}`}
+            >
+              <div className="text-2xl md:text-4xl font-black text-white leading-none mb-1">
+                {stat.number}
+              </div>
+              <div className="text-white/80 text-[10px] md:text-xs font-medium leading-tight max-w-[100px] md:max-w-[130px] ml-auto">
+                {stat.label}
+              </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Dark overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-gray-900/95 via-gray-900/80 to-gray-900/60" />
-
-      {/* Content wrapper - full height, flex column */}
-      <div className="absolute inset-0 z-10 flex flex-col">
-        {/* Main content area - fills available space, centers text vertically */}
-        <div className="flex-1 flex items-center">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-            <div className="max-w-2xl animate-fade-in-up">
-              {/* Tagline with gold line */}
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-8 h-[2px] md:w-10 md:h-[3px] bg-[#d4af37]" />
-                <span className="text-[#d4af37] text-xs md:text-base font-semibold tracking-wider uppercase">
-                  Palanpur's Premier Developer
-                </span>
-              </div>
-
-              {/* Main title */}
-              <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-extrabold text-white mb-2 leading-tight">
-                {heroData.title}
-              </h1>
-
-              {/* Subtitle */}
-              <p className="text-base md:text-2xl text-gray-300 font-light mb-2">
-                {heroData.subtitle}
-              </p>
-
-              {/* Description */}
-              <p className="text-gray-400 text-xs md:text-lg mb-6 max-w-xl leading-relaxed hidden sm:block">
-                {heroData.description}
-              </p>
-
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button
-                  size="lg"
-                  className="bg-[#d4af37] hover:bg-[#b8941f] text-white text-sm md:text-lg px-6 md:px-8 py-5 md:py-6 rounded-md font-semibold"
-                  onClick={() => document.querySelector('#projects')?.scrollIntoView({ behavior: 'smooth' })}
-                >
-                  {heroData.ctaText} <ArrowRight className="ml-2 w-4 h-4 md:w-5 md:h-5" />
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37]/10 text-sm md:text-lg px-6 md:px-8 py-5 md:py-6 rounded-md font-semibold"
-                  onClick={() => document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' })}
-                >
-                  {heroData.ctaSecondary}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Stats bar pinned to bottom */}
-        <div className="border-t border-white/10 bg-black/30 backdrop-blur-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/10">
-              {aboutData.stats.map((stat, index) => (
-                <div key={index} className="py-3 md:py-5 px-2 md:px-8 text-center md:text-left">
-                  <h3 className="text-xl md:text-3xl font-bold text-[#d4af37] mb-0.5">{stat.number}</h3>
-                  <p className="text-gray-400 text-[10px] md:text-sm leading-tight">{stat.label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+      {/* Slide dots — bottom center */}
+      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-10 flex gap-2">
+        {heroImages.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrentSlide(index)}
+            className={`h-[3px] rounded-full transition-all duration-300 ${
+              currentSlide === index ? 'bg-white w-8' : 'bg-white/50 w-4'
+            }`}
+          />
+        ))}
       </div>
 
-      {/* Scroll indicator - hidden on small screens to avoid overlapping stats */}
-      <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20 animate-bounce hidden md:flex">
-        <div className="w-6 h-10 rounded-full border-2 border-white/30 flex justify-center pt-2">
-          <div className="w-1.5 h-3 bg-[#d4af37] rounded-full animate-pulse" />
-        </div>
+      {/* Enquire Now — circular floating button, bottom right */}
+      <button
+        onClick={() => document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' })}
+        className="absolute bottom-12 right-4 md:bottom-16 md:right-20 z-10 w-14 h-14 md:w-16 md:h-16 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-all hover:scale-110 group"
+      >
+        <Plus className="w-6 h-6 md:w-7 md:h-7 text-gray-800 group-hover:text-[#d4af37] transition-colors" />
+      </button>
+
+      {/* Bottom-left label */}
+      <div className="absolute bottom-5 left-5 z-10 hidden md:block">
+        <p className="text-white/70 text-xs tracking-widest uppercase font-medium">
+          Palanpur's Premier Developer
+        </p>
       </div>
     </section>
   );
