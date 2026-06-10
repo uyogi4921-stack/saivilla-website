@@ -7,6 +7,7 @@ import Amenities from '@/components/Amenities';
 import Testimonials from '@/components/Testimonials';
 import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
+import ChatButton from '@/components/ChatButton';
 import './index.css';
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
       <Testimonials />
       <Contact />
       <Footer />
+      <ChatButton />
     </div>
   );
 }
