@@ -19,7 +19,7 @@ TOKEN_TTL_SECONDS = 12 * 60 * 60  # 12 hours
 _bearer_scheme = HTTPBearer(auto_error=False)
 
 
-DEFAULT_ADMIN_USERNAME = "admin"
+DEFAULT_ADMIN_USERNAME = "sureshyogi"
 
 
 def _get_admin_username() -> str:

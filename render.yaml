@@ -24,7 +24,7 @@ services:
         value: saivillaoffice@gmail.com
       # Username is not a secret; the password is what gates access.
       - key: ADMIN_USERNAME
-        value: admin
+        value: sureshyogi
       # Set in the Render dashboard — never commit the admin password.
       - key: ADMIN_PASSWORD
         sync: false
