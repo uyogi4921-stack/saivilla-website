@@ -11,6 +11,7 @@ import uuid
 from datetime import datetime, timezone
 
 from routes.inquiries import router as inquiries_router
+from routes.admin import router as admin_router
 
 ROOT_DIR = Path(__file__).parent
 # override=False ensures Emergent platform env vars take priority over .env file
@@ -76,6 +77,7 @@ async def get_status_checks():
 
 
 api_router.include_router(inquiries_router)
+api_router.include_router(admin_router)
 app.include_router(api_router)
 
 app.add_middleware(

@@ -1,5 +1,6 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from models.inquiry import InquiryCreate, Inquiry, InquiryResponse
+from routes.admin import require_admin
 from typing import List
 import os
 import logging
@@ -61,7 +62,7 @@ async def create_inquiry(inquiry_data: InquiryCreate):
         )
 
 
-@router.get("/", response_model=List[Inquiry])
+@router.get("/", response_model=List[Inquiry], dependencies=[Depends(require_admin)])
 async def get_all_inquiries(
     status_filter: str = None,
     limit: int = 100,
@@ -86,7 +87,7 @@ async def get_all_inquiries(
         )
 
 
-@router.get("/{inquiry_id}", response_model=Inquiry)
+@router.get("/{inquiry_id}", response_model=Inquiry, dependencies=[Depends(require_admin)])
 async def get_inquiry_by_id(inquiry_id: str):
     try:
         db = get_db()
@@ -112,7 +113,7 @@ async def get_inquiry_by_id(inquiry_id: str):
         )
 
 
-@router.patch("/{inquiry_id}/status")
+@router.patch("/{inquiry_id}/status", dependencies=[Depends(require_admin)])
 async def update_inquiry_status(inquiry_id: str, new_status: str):
     try:
         db = get_db()
@@ -148,7 +149,7 @@ async def update_inquiry_status(inquiry_id: str, new_status: str):
         )
 
 
-@router.delete("/{inquiry_id}")
+@router.delete("/{inquiry_id}", dependencies=[Depends(require_admin)])
 async def delete_inquiry(inquiry_id: str):
     try:
         db = get_db()
