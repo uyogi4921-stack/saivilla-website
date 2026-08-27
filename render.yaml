@@ -25,7 +25,9 @@ services:
       # Username is not a secret; the password is what gates access.
       - key: ADMIN_USERNAME
         value: sureshyogi
-      # Set in the Render dashboard — never commit the admin password.
+      # Optional. The app falls back to the PBKDF2 hash baked into
+      # routes/admin.py; set this here to change the password without a deploy.
+      # Never commit a plaintext password to this file.
       - key: ADMIN_PASSWORD
         sync: false
       - key: ADMIN_TOKEN_SECRET

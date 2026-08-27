@@ -3,6 +3,7 @@ import hashlib
 import hmac
 import logging
 import os
+import secrets
 import time
 from typing import Optional
 
@@ -27,13 +28,50 @@ def _get_admin_username() -> str:
     return os.environ.get("ADMIN_USERNAME", DEFAULT_ADMIN_USERNAME)
 
 
-def _get_admin_password() -> Optional[str]:
-    return os.environ.get("ADMIN_PASSWORD")
+# PBKDF2 hash of the admin password. Safe to keep in the repository: it cannot be
+# reversed into the password. ADMIN_PASSWORD (plain) or ADMIN_PASSWORD_HASH set in
+# the hosting dashboard override it.
+DEFAULT_ADMIN_PASSWORD_HASH = (
+    "pbkdf2_sha256$600000$1jVcwYpR0cHZxcfbdDoXCQ==$N6iYmZZoNjmcljvW2kSZPBpsw4eEur/wbll2FCbrYi4="
+)
+
+PBKDF2_ITERATIONS = 600_000
+
+
+def hash_password(password: str, *, iterations: int = PBKDF2_ITERATIONS, salt: Optional[bytes] = None) -> str:
+    salt = salt if salt is not None else secrets.token_bytes(16)
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, iterations)
+    return f"pbkdf2_sha256${iterations}${base64.b64encode(salt).decode()}${base64.b64encode(digest).decode()}"
+
+
+def _get_password_hash() -> str:
+    plain = os.environ.get("ADMIN_PASSWORD")
+    if plain:
+        return hash_password(plain)
+    return os.environ.get("ADMIN_PASSWORD_HASH") or DEFAULT_ADMIN_PASSWORD_HASH
+
+
+def verify_password(candidate: str, encoded: str) -> bool:
+    try:
+        algorithm, iterations, salt_b64, digest_b64 = encoded.split("$")
+        if algorithm != "pbkdf2_sha256":
+            return False
+        expected = base64.b64decode(digest_b64)
+        actual = hashlib.pbkdf2_hmac("sha256", candidate.encode(), base64.b64decode(salt_b64), int(iterations))
+    except (ValueError, TypeError):
+        logger.error("ADMIN_PASSWORD_HASH is malformed; refusing all logins")
+        return False
+    return hmac.compare_digest(actual, expected)
+
+
+# Tokens must not be forgeable from anything public, so the fallback is a random
+# per-process key rather than something derived from the (public) password hash.
+# Sessions then end when the server restarts unless ADMIN_TOKEN_SECRET is set.
+_EPHEMERAL_TOKEN_SECRET = secrets.token_hex(32)
 
 
 def _get_signing_secret() -> bytes:
-    # Dedicated secret preferred; falls back to a key derived from the password
-    secret = os.environ.get("ADMIN_TOKEN_SECRET") or _get_admin_password() or ""
+    secret = os.environ.get("ADMIN_TOKEN_SECRET") or _EPHEMERAL_TOKEN_SECRET
     return hashlib.sha256(("saivilla-admin::" + secret).encode()).digest()
 
 
@@ -60,11 +98,6 @@ def verify_admin_token(token: str) -> bool:
 async def require_admin(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(_bearer_scheme),
 ) -> None:
-    if not _get_admin_password():
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Admin access is not configured (ADMIN_PASSWORD not set)",
-        )
     if credentials is None or not verify_admin_token(credentials.credentials):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -85,17 +118,10 @@ class AdminLoginResponse(BaseModel):
 
 @router.post("/login", response_model=AdminLoginResponse)
 async def admin_login(payload: AdminLoginRequest):
-    admin_password = _get_admin_password()
-    if not admin_password:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Admin access is not configured (ADMIN_PASSWORD not set)",
-        )
-
     # Compare both before deciding, so a wrong username costs the same as a wrong
     # password and the response cannot be used to confirm a valid username.
     username_ok = hmac.compare_digest(payload.username.strip().lower(), _get_admin_username().lower())
-    password_ok = hmac.compare_digest(payload.password, admin_password)
+    password_ok = verify_password(payload.password, _get_password_hash())
 
     if not (username_ok and password_ok):
         logger.warning("Failed admin login attempt for username %r", payload.username)
