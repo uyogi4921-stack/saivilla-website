@@ -66,17 +66,18 @@ function formatDate(value) {
 }
 
 function AdminLogin({ onLoggedIn }) {
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!password) return;
+    if (!username || !password) return;
     setIsSubmitting(true);
     setError('');
     try {
-      const data = await apiFetch('/admin/login', { method: 'POST', body: { password }, isLogin: true });
+      const data = await apiFetch('/admin/login', { method: 'POST', body: { username, password }, isLogin: true });
       setToken(data.token);
       onLoggedIn();
     } catch (err) {
@@ -101,13 +102,26 @@ function AdminLogin({ onLoggedIn }) {
           <div className="w-12 h-12 rounded-full bg-[#d4af37]/15 border border-[#d4af37]/40 flex items-center justify-center mx-auto mb-6">
             <Lock className="w-5 h-5 text-[#d4af37]" />
           </div>
-          <label htmlFor="admin-password" className="block text-white/70 text-sm mb-2">
+          <label htmlFor="admin-username" className="block text-white/70 text-sm mb-2">
+            Username
+          </label>
+          <input
+            id="admin-username"
+            type="text"
+            autoFocus
+            autoComplete="username"
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
+            className="w-full rounded-lg bg-black/30 border border-white/15 text-white px-4 py-3 outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37] transition-colors"
+            placeholder="Enter username"
+          />
+          <label htmlFor="admin-password" className="block text-white/70 text-sm mb-2 mt-4">
             Password
           </label>
           <input
             id="admin-password"
             type="password"
-            autoFocus
+            autoComplete="current-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             className="w-full rounded-lg bg-black/30 border border-white/15 text-white px-4 py-3 outline-none focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37] transition-colors"
@@ -120,7 +134,7 @@ function AdminLogin({ onLoggedIn }) {
           )}
           <button
             type="submit"
-            disabled={isSubmitting || !password}
+            disabled={isSubmitting || !username || !password}
             className="w-full mt-6 rounded-lg bg-[#d4af37] hover:bg-[#b8941f] disabled:opacity-50 disabled:cursor-not-allowed text-black font-bold py-3 transition-colors flex items-center justify-center gap-2"
           >
             {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}

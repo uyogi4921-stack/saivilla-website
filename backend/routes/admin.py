@@ -19,6 +19,14 @@ TOKEN_TTL_SECONDS = 12 * 60 * 60  # 12 hours
 _bearer_scheme = HTTPBearer(auto_error=False)
 
 
+DEFAULT_ADMIN_USERNAME = "admin"
+
+
+def _get_admin_username() -> str:
+    # Not a secret — the password is what gates access.
+    return os.environ.get("ADMIN_USERNAME", DEFAULT_ADMIN_USERNAME)
+
+
 def _get_admin_password() -> Optional[str]:
     return os.environ.get("ADMIN_PASSWORD")
 
@@ -65,6 +73,7 @@ async def require_admin(
 
 
 class AdminLoginRequest(BaseModel):
+    username: str = Field(..., min_length=1, max_length=100)
     password: str = Field(..., min_length=1, max_length=200)
 
 
@@ -83,11 +92,16 @@ async def admin_login(payload: AdminLoginRequest):
             detail="Admin access is not configured (ADMIN_PASSWORD not set)",
         )
 
-    if not hmac.compare_digest(payload.password, admin_password):
-        logger.warning("Failed admin login attempt")
+    # Compare both before deciding, so a wrong username costs the same as a wrong
+    # password and the response cannot be used to confirm a valid username.
+    username_ok = hmac.compare_digest(payload.username.strip().lower(), _get_admin_username().lower())
+    password_ok = hmac.compare_digest(payload.password, admin_password)
+
+    if not (username_ok and password_ok):
+        logger.warning("Failed admin login attempt for username %r", payload.username)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect password",
+            detail="Incorrect username or password",
         )
 
     logger.info("Admin logged in")
